@@ -3,7 +3,7 @@ function request()
 
 	id = math.random(1,10)
 
-	path = "/alloc?business=test_1" .. tostring(id)
+	path = "/alloc?business=test_" .. tostring(id)
 	return wrk.format(method,path,nil,body)
 end
 

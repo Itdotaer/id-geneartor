@@ -23,6 +23,7 @@ func (service *GeneratorServiceImpl) NextId(business string) (int64, error) {
 		exist bool
 	)
 
+	service.Mutex.Lock()
 	if gen, exist = service.BusinessMap[business]; !exist {
 		gen = &generator.Generator{
 			Business: business,
@@ -33,6 +34,7 @@ func (service *GeneratorServiceImpl) NextId(business string) (int64, error) {
 
 		service.BusinessMap[business] = gen
 	}
+	service.Mutex.Unlock()
 
 	if len(gen.Segments) <= 1 && !gen.IsAlloc {
 		gen.IsAlloc = true
