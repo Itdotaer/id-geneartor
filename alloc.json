@@ -1,0 +1,8 @@
+{
+  "DSN": "itdotaer:itdotaer@tcp(localhost:3306)/id_generator_db",
+  "table": "id_generator_tab",
+
+  "HttpPort": 8880,
+  "HttpReadTimeout": 5000,
+  "HttpWriteTimeout": 5000
+}
