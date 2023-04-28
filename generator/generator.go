@@ -5,14 +5,16 @@ import (
 	"sync"
 )
 
+// Generator 生成器
 type Generator struct {
 	Mutex    sync.Mutex
-	Business string     // 业务标识
-	Segments []*Segment // 双Buffer, 最少0个, 最多2个号段在内存
-	IsAlloc  bool
-	Map      map[int64]int64
+	Business string          // 业务标识
+	Segments []*Segment      // 双Buffer, 最少0个, 最多2个号段在内存
+	IsAlloc  bool            // 是否在分配号段
+	Map      map[int64]int64 // 这个为本地统计是否生成ID是否冲突，正式版本可以不要
 }
 
+// Segment 号段
 type Segment struct {
 	CurrentId int64 // 当前号码
 	Offset    int64 // 消费偏移
@@ -28,8 +30,9 @@ func (gen *Generator) GenerateNextId() int64 {
 		gen.Segments = append(gen.Segments[:0], gen.Segments[1:]...) // 弹出第一个seg, 后续seg向前移动
 	}
 
+	// 这个为本地统计是否生成ID是否冲突，正式版本可以不要
 	if value, ok := gen.Map[nextId]; ok {
-		println(fmt.Sprintf("%s冲突:%d", gen.Business, value))
+		println(fmt.Sprintf("业务%s冲突:%d", gen.Business, value))
 	}
 
 	return nextId
