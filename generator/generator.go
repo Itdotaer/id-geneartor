@@ -60,8 +60,8 @@ func (gen *Generator) AppendSegment() error {
 
 		gen.Segments = append(gen.Segments, segment)
 	}
-
 	gen.Mutex.Unlock()
 	gen.IsAlloc = false
+
 	return nil
 }

@@ -9,7 +9,6 @@
 -- insert into id_generator_tab(business, current_id, step) value ('test_19', 0, 10000);
 -- insert into id_generator_tab(business, current_id, step) value ('test_20', 0, 10000);
 
-
 function request()
 	method = "GET"
 
