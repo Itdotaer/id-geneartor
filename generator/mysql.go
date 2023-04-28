@@ -26,6 +26,10 @@ type Mysql struct {
 
 var GMysql *Mysql
 
+const (
+	NewSegmentRetryTimes = 5
+)
+
 func InitMysql() error {
 	db, err := sql.Open("mysql", GConf.DSN)
 	if err != nil {
@@ -50,7 +54,7 @@ func (mysql *Mysql) NextSegment(business string) (*Segment, error) {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Duration(20000)*time.Millisecond)
 	defer cancelFunc()
 
-	for counter := 0; counter < 10; counter++ {
+	for counter := 0; counter < NewSegmentRetryTimes; counter++ {
 		query := "SELECT current_id,step FROM " + GConf.Table + " WHERE business=?"
 		if err := mysql.db.QueryRowContext(ctx, query, business).Scan(&currentId, &step); err != nil {
 			return nil, err
@@ -63,8 +67,9 @@ func (mysql *Mysql) NextSegment(business string) (*Segment, error) {
 
 		if rowsAffected, err = result.RowsAffected(); err != nil { // 失败
 			return nil, err
-		} else if rowsAffected == 0 { // 记录不存在
-			return nil, errors.New("business not found")
+		} else if rowsAffected == 0 {
+			// 记录不存在，继续执行
+			continue
 		}
 
 		// 执行成功
