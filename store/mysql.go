@@ -1,10 +1,11 @@
-package generator
+package store
 
 import (
 	"context"
 	"database/sql"
 	"errors"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/itdotaer/id-generator/config"
 	"time"
 )
 
@@ -31,7 +32,7 @@ const (
 )
 
 func InitMysql() error {
-	db, err := sql.Open("mysql", GConf.DSN)
+	db, err := sql.Open("mysql", config.GConf.DSN)
 	if err != nil {
 		return err
 	}
@@ -41,7 +42,7 @@ func InitMysql() error {
 	return nil
 }
 
-func (mysql *Mysql) NextSegment(business string) (*Segment, error) {
+func (mysql *Mysql) NextStep(business string) (int64, int64, error) {
 	var (
 		currentId    int64
 		step         int64
@@ -55,32 +56,26 @@ func (mysql *Mysql) NextSegment(business string) (*Segment, error) {
 	defer cancelFunc()
 
 	for counter := 0; counter < NewSegmentRetryTimes; counter++ {
-		query := "SELECT current_id,step FROM " + GConf.Table + " WHERE business=?"
+		query := "SELECT current_id,step FROM " + config.GConf.Table + " WHERE business=?"
 		if err := mysql.db.QueryRowContext(ctx, query, business).Scan(&currentId, &step); err != nil {
-			return nil, err
+			return 0, 0, err
 		}
 
-		update := "UPDATE " + GConf.Table + " SET current_id=current_id+step WHERE business=? and current_id =?"
+		update := "UPDATE " + config.GConf.Table + " SET current_id=current_id+step WHERE business=? and current_id =?"
 		if result, err = mysql.db.ExecContext(ctx, update, business, currentId); err != nil {
-			return nil, err
+			return 0, 0, err
 		}
 
 		if rowsAffected, err = result.RowsAffected(); err != nil { // 失败
-			return nil, err
+			return 0, 0, err
 		} else if rowsAffected == 0 {
 			// 记录不存在，继续执行
 			continue
 		}
 
 		// 执行成功
-		segment := &Segment{
-			CurrentId: currentId + step,
-			Offset:    0,
-			Step:      step,
-		}
-
-		return segment, nil
+		return currentId + step, step, nil
 	}
 
-	return nil, errors.New("new segment error")
+	return 0, 0, errors.New("new segment error")
 }

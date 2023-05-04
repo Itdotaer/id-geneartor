@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/itdotaer/id-generator/generator"
+	"github.com/itdotaer/id-generator/config"
 	service2 "github.com/itdotaer/id-generator/service"
 	"net"
 	"net/http"
@@ -67,11 +67,11 @@ func StartServer() error {
 	mux.HandleFunc("/alloc", handleAlloc)
 
 	srv := &http.Server{
-		ReadTimeout:  time.Duration(generator.GConf.HttpReadTimeout) * time.Millisecond,
-		WriteTimeout: time.Duration(generator.GConf.HttpWriteTimeout) * time.Millisecond,
+		ReadTimeout:  time.Duration(config.GConf.HttpReadTimeout) * time.Millisecond,
+		WriteTimeout: time.Duration(config.GConf.HttpWriteTimeout) * time.Millisecond,
 		Handler:      mux,
 	}
-	listener, err := net.Listen("tcp", ":"+strconv.Itoa(generator.GConf.HttpPort))
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(config.GConf.HttpPort))
 	if err != nil {
 		return err
 	}

@@ -2,34 +2,35 @@ package service
 
 import (
 	"errors"
-	"github.com/itdotaer/id-generator/generator"
+	"github.com/itdotaer/id-generator/store"
 	"sync"
 )
 
 type GeneratorServiceImpl struct {
 	Mutex       sync.Mutex
-	BusinessMap map[string]*generator.Generator
+	BusinessMap map[string]*Generator
 }
 
 func NewGeneratorService() GeneratorService {
 	return &GeneratorServiceImpl{
-		BusinessMap: make(map[string]*generator.Generator),
+		BusinessMap: make(map[string]*Generator),
 	}
 }
 
 func (service *GeneratorServiceImpl) NextId(business string) (int64, error) {
 	var (
-		gen   *generator.Generator
+		gen   *Generator
 		exist bool
 	)
 
 	service.Mutex.Lock()
 	if gen, exist = service.BusinessMap[business]; !exist {
-		gen = &generator.Generator{
+		gen = &Generator{
 			Business: business,
-			Segments: make([]*generator.Segment, 0),
+			Segments: make([]*Segment, 0),
 			IsAlloc:  false,
 			Map:      make(map[int64]int64),
+			Store:    store.GRedis,
 		}
 
 		service.BusinessMap[business] = gen

@@ -3,7 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/itdotaer/id-generator/generator"
+	"github.com/itdotaer/id-generator/config"
+	"github.com/itdotaer/id-generator/store"
 	"os"
 	"runtime"
 )
@@ -13,7 +14,7 @@ var (
 )
 
 func initCmd() {
-	flag.StringVar(&configFile, "config", "./alloc.json", "where alloc.json is.")
+	flag.StringVar(&configFile, "config", "./config/alloc.json", "where alloc.json is.")
 	flag.Parse()
 }
 
@@ -27,10 +28,14 @@ func main() {
 
 	var err error = nil
 
-	if err = generator.LoadConf(configFile); err != nil {
+	if err = config.LoadConf(configFile); err != nil {
 		goto ERROR
 	}
-	if err = generator.InitMysql(); err != nil {
+	if err = store.InitMysql(); err != nil {
+		goto ERROR
+	}
+
+	if err = store.InitRedis(); err != nil {
 		goto ERROR
 	}
 
